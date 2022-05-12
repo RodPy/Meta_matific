@@ -1,4 +1,4 @@
-import pandas as pd
+.pyimport pandas as pd
 from sys import argv
 
 #
