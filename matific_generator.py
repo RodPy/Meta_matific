@@ -1,25 +1,48 @@
 import pandas as pd
 import datetime
+import fuzzywuzzy as fz
+from fuzzywuzzy import process
 import re
 from unicodedata import normalize
 from sys import argv
 
-script, archivo = argv
 
-##Funciones
+
+#Funciones
 tipo = lambda x, a: 'SI' if (x == f"{a}") else 'NO'
 
 
 def formatString(x):
-    return x.title().replace(".", "").replace('"', "").replace(",", "").rstrip()
+    return x.title().replace(".", "").replace('"', "").replace(",", "").rstrip().lstrip()
 
-
+## Formateo de Eliminacion de acentos
 def formatNorm(s):
     s = re.sub(r"([^n\u0300-\u036f]|n(?!\u0303(?![\u0300-\u036f])))[\u0300-\u036f]+", r"\1",normalize("NFD", s), 0, re.I)
     return normalize('NFC', s)
 
+def genFecha(a):
+    currentDateTime = datetime.datetime.now()
+    date = datetime.date.today()
+    gradoAnos={'1':'7','2':'8','3':'9','4':'10','5':'11','6':'12','8':'13'}
+    for key in gradoAnos:
+        if key==str(a):
+            x=gradoAnos[key]
+    ano=date.year-int(x)
+    return f"01/01/{ano}"
+
+def genIA(x):
+    aprox=process.extractOne(x,setDoc)
+    print (aprox)
+    return aprox[0]
+
+def genMatificUser (df1 doc):
+    if doc=="Matific":
+        df1['Nombre']=
+        df1['Nro de doc.']=
 
 ## Diccionarios
+setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad"]
+gradoAnos={'1':'6','2':'7','3':'8','4':'9','5':'10','6':'11','8':'12'}
 Paises = {'PY': 'Paraguay', 'AR': 'Argentina', 'DE': 'Documento Extranjero'}
 Nacionalidades = {'Paraguaya': 'PY', 'Afghanistan': 'AF',
                   'Albania': 'AL',
@@ -272,80 +295,93 @@ Nacionalidades = {'Paraguaya': 'PY', 'Afghanistan': 'AF',
                   'Zambia': 'ZM',
                   'Zimbabwe': 'ZW',
                   'Åland Islands': 'AX'}
-tipoDoc = {'Certificado de Nac': 'Matific', 'Cedula de Identidad': 'CI', 'Cédula Identidad': 'CI' }
+tipoDoc = {'Certificado de Nac': 'Matific', 'Cedula de Identidad': 'CI','Oficina':"Matific"}
 Grados = {'1': "1ero", '2': "2do", '3': "3ro", '4': "4to", '5': "5to", '6': "6to", '7': "7mo"}
 Documentos = {'DE': 'Documento Extranjero', 'CI': 'Cédula de Identidad'}
 
-df = pd.read_excel(archivo)
+def op(archivo):
+    df = pd.read_excel(archivo)
 
-Escuela = formatString(str(df['Nombre de la institución'][0]))
-Grado = df['Grado'][0]
-Turno = df['Turno'][0]
-Seccion = df['Sección'][0]
-Tipo = df['Tipo de Institución '][0]
-print(Escuela,Grado,Turno,Seccion,Tipo)
+    Escuela = formatString(str(df['Nombre de la institución'][0]))
+    Grado = df['Grado'][0]
+    Turno = df['Turno'][0]
+    Seccion = df['Sección'][0]
+    Tipo = df['Tipo de Institución '][0]
+    # print(Escuela,Grado,Turno,Seccion,Tipo)
 
-df1 = df.iloc[9:, 1:]
-df1 = df1.reset_index(drop=True)
-df1.columns = [
-    'Nacionalidad',
-    'Tipo de documento',
-    'Nro de doc.',
-    'Correo electrónico',
-    'Nombre',
-    'Apellido',
-    'F. Nacimiento',
-    'Sexo',
-    'Rol',
-    'Tiene discapacidad']
+    df1 = df.iloc[9:, 1:]
+    df1 = df1.reset_index(drop=True)
+    df1.columns = [
+        'Nacionalidad',
+        'Tipo de documento',
+        'Nro de doc.',
+        'Correo electrónico',
+        'Nombre',
+        'Apellido',
+        'F. Nacimiento',
+        'Sexo',
+        'Rol',
+        'Tiene discapacidad']
 
-## Archivo CSV de Matific
-data = {"Nacionalidad": df1["Nacionalidad"].apply(formatNorm),
-        'Tipo de documento': df1["Tipo de documento"].astype(str).apply(formatNorm),
-        'Nro de doc.': df1["Nro de doc."],
-        'Correo electrónico': df1["Correo electrónico"],
-        "Nombre": df1["Nombre"].astype(str).apply(formatString),
-        "Apellido": df1["Apellido"].astype(str).apply(formatString),
-        "Contrasena": "Meta2022",
-        'F. Nacimiento': df1['F. Nacimiento'],
-        'Pertenezco a una institución pública': tipo(Tipo, "Pública"),
-        'Pertenezco a una institución Subvencionada': tipo(Tipo, "Subvencionada"),
-        'Pertenezco a una institución Privada': tipo(Tipo, "Privada"),
-        'Sexo': df1['Sexo'],
-        'Rol': df1['Rol'],
-        'Tiene discapacidad': df1['Tiene discapacidad'],
-        }
-df2 = pd.DataFrame(data)
-df2 = df2.replace({'Nacionalidad': Nacionalidades})
-df2 = df2.replace({'Tipo de documento': tipoDoc})
-df2['F. Nacimiento']=pd.to_datetime(df2['F. Nacimiento']).dt.strftime('%m/%d/%Y')
-#df2 = df2.dropna(subset=["Nombre","Tipo de documento"])
-# df2 = df2.dropna()
+## Eliminar las filas que no tengan nombres y apellido
+    df1=df1.dropna(subset=['Nombre', 'Apellido'], axis=0)
+    df1['F. Nacimiento'] = df1['F. Nacimiento'].fillna(genFecha(Grado))
+
+    ## Archivo CSV de Matific
+    data = {"Nacionalidad": df1["Nacionalidad"].apply(formatNorm),
+            'Tipo de documento': df1["Tipo de documento"].astype(str).apply(formatNorm).apply(formatString).apply(genIA),
+            'Nro de doc.': df1["Nro de doc."].astype(str).apply(formatString),
+            'Correo electrónico': df1["Correo electrónico"],
+            "Nombre": df1["Nombre"].astype(str).apply(formatString),
+            "Apellido": df1["Apellido"].astype(str).apply(formatString),
+            "Contrasena": "Meta2022",
+            'F. Nacimiento': df1['F. Nacimiento'],
+            'Pertenezco a una institución pública': tipo(Tipo, "Pública"),
+            'Pertenezco a una institución Subvencionada': tipo(Tipo, "Subvencionada"),
+            'Pertenezco a una institución Privada': tipo(Tipo, "Privada"),
+            'Sexo': df1['Sexo'],
+            'Rol': df1['Rol'],
+            'Tiene discapacidad': df1['Tiene discapacidad'],
+            }
+    df2 = pd.DataFrame(data)
+    df2 = df2.replace({'Nacionalidad': Nacionalidades})
+    df2 = df2.replace({'Tipo de documento': tipoDoc})
+    df2['F. Nacimiento']=pd.to_datetime(df2['F. Nacimiento']).dt.strftime('%d/%m/%Y')
 
 
 
-## Archivo TODOS
-data = {"Nacionalidad": df2["Nacionalidad"],
-        'Tipo de documento': df2["Tipo de documento"],
-        'Nro de doc.': df2["Nro de doc."],
-        'Escuela': Escuela,
-        'Correo electrónico': df1["Correo electrónico"],
-        "Nombre": df2["Nombre"],
-        "Apellido": df2["Apellido"],
-        "Contrasena": "Meta2022",
-        'F. Nacimiento': df2['F. Nacimiento'],
-        'Sexo': df1['Sexo'],
-        'Grado': Grado,
-        'Tiene discapacidad': df1['Tiene discapacidad'],
-        'Pertenezco a una institución pública': tipo(Tipo, "Pública"),
-        'Pertenezco a una institución Subvencionada': tipo(Tipo, "Subvencionada"),
-        'Pertenezco a una institución Privada': tipo(Tipo, "Privada"),
-        }
-df3 = pd.DataFrame(data)
-df3 = df3.replace({'Nacionalidad': Paises})
-df3 = df3.replace({'Tipo de documento': Documentos})
+    ## Archivo TODOS
+    data = {"Nacionalidad": df2["Nacionalidad"],
+            'Tipo de documento': df2["Tipo de documento"],
+            'Nro de doc.': df2["Nro de doc."],
+            "Contrasena": "Meta2022",
+            "Nombre": df2["Nombre"],
+            "Apellido": df2["Apellido"],
+            'Escuela': Escuela,
+            'F. Nacimiento': df2['F. Nacimiento'],
+            'Sexo': df1['Sexo'],
+            'Grade': Grado,
+            'Tiene discapacidad': df1['Tiene discapacidad'],
+            'Pertenezco a una institución pública': tipo(Tipo, "Pública"),
+            'Pertenezco a una institución Subvencionada': tipo(Tipo, "Subvencionada"),
+            'Pertenezco a una institución Privada': tipo(Tipo, "Privada"),
+            }
+    df3 = pd.DataFrame(data)
+    df3 = df3.replace({'Nacionalidad': Paises})
+    df3 = df3.replace({'Tipo de documento': Documentos})
+    df3["Grade"] = df3["Grade"].astype(str)
+    df3 = df3.replace({'Grade': Grados})
 
-fichero = str(Grado) +"_"+ str(Seccion)+"_" + str(Escuela)
-df3.to_excel(f"{fichero}.xlsx", index=False)
-df2.to_csv(f"{fichero}.csv", index=False)
+    fichero = str(Grado) +"_"+ str(Seccion)+"_" + str(Escuela)
+    df3.to_excel(f"{fichero}.xlsx", index=False)
+    df2.to_csv(f"{fichero}.csv", index=False)
 
+
+if __name__ =="__main__":
+    script, archivo = argv
+    try:
+        op(archivo)
+        # print(f"\nLISTO -> {archivo}")
+    except Exception as ex:
+        print(f"\nFALLA -> {archivo}")
+        print(ex)
