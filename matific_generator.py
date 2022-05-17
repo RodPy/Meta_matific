@@ -30,18 +30,18 @@ def genFecha(a):
     ano=date.year-int(x)
     return f"01/01/{ano}"
 
-def genIA(x):
+def genIADoc(x):
     aprox=process.extractOne(x,setDoc)
     print (aprox)
     return aprox[0]
-
-def genMatificUser (df1 doc):
-    if doc=="Matific":
-        df1['Nombre']=
-        df1['Nro de doc.']=
+def genIAPais(x):
+    aprox=process.extractOne(x,setPais)
+    print (aprox)
+    return aprox[0]
 
 ## Diccionarios
 setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad"]
+setPais=['Paraguay','Argentina','Documento Extranjero']
 gradoAnos={'1':'6','2':'7','3':'8','4':'9','5':'10','6':'11','8':'12'}
 Paises = {'PY': 'Paraguay', 'AR': 'Argentina', 'DE': 'Documento Extranjero'}
 Nacionalidades = {'Paraguaya': 'PY', 'Afghanistan': 'AF',
@@ -301,7 +301,6 @@ Documentos = {'DE': 'Documento Extranjero', 'CI': 'Cédula de Identidad'}
 
 def op(archivo):
     df = pd.read_excel(archivo)
-
     Escuela = formatString(str(df['Nombre de la institución'][0]))
     Grado = df['Grado'][0]
     Turno = df['Turno'][0]
@@ -328,8 +327,8 @@ def op(archivo):
     df1['F. Nacimiento'] = df1['F. Nacimiento'].fillna(genFecha(Grado))
 
     ## Archivo CSV de Matific
-    data = {"Nacionalidad": df1["Nacionalidad"].apply(formatNorm),
-            'Tipo de documento': df1["Tipo de documento"].astype(str).apply(formatNorm).apply(formatString).apply(genIA),
+    data = {"Nacionalidad": df1["Nacionalidad"].astype(str).apply(formatNorm).apply(genIAPais),
+            'Tipo de documento': df1["Tipo de documento"].astype(str).apply(formatNorm).apply(formatString).apply(genIADoc),
             'Nro de doc.': df1["Nro de doc."].astype(str).apply(formatString),
             'Correo electrónico': df1["Correo electrónico"],
             "Nombre": df1["Nombre"].astype(str).apply(formatString),
@@ -344,10 +343,23 @@ def op(archivo):
             'Tiene discapacidad': df1['Tiene discapacidad'],
             }
     df2 = pd.DataFrame(data)
+#Reemplazo segun diccionarios
+    # df2["Nacionalidad"] = df2["Nacionalidad"].astype(str)
     df2 = df2.replace({'Nacionalidad': Nacionalidades})
     df2 = df2.replace({'Tipo de documento': tipoDoc})
+#Formateo de Fechas
     df2['F. Nacimiento']=pd.to_datetime(df2['F. Nacimiento']).dt.strftime('%d/%m/%Y')
 
+# Set Documentos
+
+## Set de nombres matific User
+    for index, row in df2.iterrows():
+        if not df2["Nro de doc."][index].isdigit():
+            df2["Tipo de documento"][index] = "Matific"
+
+        if df2["Tipo de documento"][index] == "Matific":
+            # print(df2["Nombre"][index] + " " + df2["Apellido"][index])
+            df2["Nro de doc."][index] = df2["Nombre"][index].split()[0] + df2["Apellido"][index].split()[0]
 
 
     ## Archivo TODOS
@@ -372,6 +384,7 @@ def op(archivo):
     df3["Grade"] = df3["Grade"].astype(str)
     df3 = df3.replace({'Grade': Grados})
 
+# Nombre del Archivo
     fichero = str(Grado) +"_"+ str(Seccion)+"_" + str(Escuela)
     df3.to_excel(f"{fichero}.xlsx", index=False)
     df2.to_csv(f"{fichero}.csv", index=False)
