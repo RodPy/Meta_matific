@@ -343,6 +343,7 @@ def op(archivo):
             'Tiene discapacidad': df1['Tiene discapacidad'],
             }
     df2 = pd.DataFrame(data)
+
 #Reemplazo segun diccionarios
     # df2["Nacionalidad"] = df2["Nacionalidad"].astype(str)
     df2 = df2.replace({'Nacionalidad': Nacionalidades})
@@ -359,7 +360,7 @@ def op(archivo):
 
         if df2["Tipo de documento"][index] == "Matific":
             # print(df2["Nombre"][index] + " " + df2["Apellido"][index])
-            df2["Nro de doc."][index] = df2["Nombre"][index].split()[0] + df2["Apellido"][index].split()[0]
+            df2["Nro de doc."][index] = formatNorm(df2["Nombre"][index].split()[0]) + formatNorm(df2["Apellido"][index].split()[0])
 
 
     ## Archivo TODOS
@@ -398,3 +399,5 @@ if __name__ =="__main__":
     except Exception as ex:
         print(f"\nFALLA -> {archivo}")
         print(ex)
+        with open('info.txt', 'a') as f:
+            f.writelines(f"\n- FALLA -> {archivo}"+" "+ str(ex))
