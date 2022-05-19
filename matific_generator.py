@@ -33,15 +33,22 @@ def genFecha(a):
 def genIADoc(x):
     aprox=process.extractOne(x,setDoc)
     print (aprox)
-    return aprox[0]
+    if aprox[1]>50:
+        return aprox[0]
+    else:
+        return x
+
 def genIAPais(x):
     aprox=process.extractOne(x,setPais)
     print (aprox)
-    return aprox[0]
+    if aprox[1]>50:
+        return aprox[0]
+    else:
+        return x
 
 ## Diccionarios
-setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad"]
-setPais=['Paraguay','Argentina','Documento Extranjero']
+setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad",'Documento Extranjero']
+setPais=['Paraguay','Argentina','Documento Extranjero','Brasil']
 gradoAnos={'1':'6','2':'7','3':'8','4':'9','5':'10','6':'11','8':'12'}
 Paises = {'PY': 'Paraguay', 'AR': 'Argentina', 'DE': 'Documento Extranjero'}
 Nacionalidades = {'Paraguaya': 'PY', 'Afghanistan': 'AF',
@@ -295,18 +302,25 @@ Nacionalidades = {'Paraguaya': 'PY', 'Afghanistan': 'AF',
                   'Zambia': 'ZM',
                   'Zimbabwe': 'ZW',
                   'Åland Islands': 'AX'}
-tipoDoc = {'Certificado de Nac': 'Matific', 'Cedula de Identidad': 'CI','Oficina':"Matific"}
+tipoDoc = {'Certificado de Nac': 'Matific', 'Cedula de Identidad': 'CI','Oficina':"Matific",'DE':"Documento Extranjero"}
 Grados = {'1': "1ero", '2': "2do", '3': "3ro", '4': "4to", '5': "5to", '6': "6to", '7': "7mo"}
 Documentos = {'DE': 'Documento Extranjero', 'CI': 'Cédula de Identidad'}
+turnos={'Mañana': 'TM', 'Tarde':'TT' }
 
 def op(archivo):
     df = pd.read_excel(archivo)
+    # df['Grado'] = df['Grado'].fillna("XX")
+    # df['Turno'] = df['Turno'].fillna("TM")
+    # df['Sección'] = df['Sección'].fillna("A")
+
     Escuela = formatString(str(df['Nombre de la institución'][0]))
+    df = df.replace({'Turno': turnos})
     Grado = df['Grado'][0]
     Turno = df['Turno'][0]
     Seccion = df['Sección'][0]
     Tipo = df['Tipo de Institución '][0]
-    # print(Escuela,Grado,Turno,Seccion,Tipo)
+    print(Escuela,Grado,Turno,Seccion,Tipo)
+    # df2 = df2.replace({'Tipo de documento': tipoDoc})
 
     df1 = df.iloc[9:, 1:]
     df1 = df1.reset_index(drop=True)
@@ -325,6 +339,8 @@ def op(archivo):
 ## Eliminar las filas que no tengan nombres y apellido
     df1=df1.dropna(subset=['Nombre', 'Apellido'], axis=0)
     df1['F. Nacimiento'] = df1['F. Nacimiento'].fillna(genFecha(Grado))
+    df1['Tiene discapacidad'] = df1['Tiene discapacidad'].fillna("NO")
+    df1['Rol'] = df1['Rol'].fillna("Alumno")
 
     ## Archivo CSV de Matific
     data = {"Nacionalidad": df1["Nacionalidad"].astype(str).apply(formatNorm).apply(genIAPais),
@@ -349,7 +365,20 @@ def op(archivo):
     df2 = df2.replace({'Nacionalidad': Nacionalidades})
     df2 = df2.replace({'Tipo de documento': tipoDoc})
 #Formateo de Fechas
-    df2['F. Nacimiento']=pd.to_datetime(df2['F. Nacimiento']).dt.strftime('%d/%m/%Y')
+    try:
+        df2['F. Nacimiento']=pd.to_datetime(df2['F. Nacimiento']).dt.strftime('%d/%m/%Y')
+    except:
+        df2['F. Nacimiento']
+        genFecha(Grado)
+        # fecha = "04/021993"
+        # fecha = fecha.replace("/", "").replace("-", "")
+        # len(fecha)
+        #
+        # if len(fecha) > 8:
+        #     if (len(fecha[0:2]) < 30 and fecha[4:8] < 2100):
+        #         fecha = fecha[0:2] + "/" + fecha[2:4] + "/" + fecha[4:8] < 2100
+        #     else:
+        #         genFecha(Grado)
 
 # Set Documentos
 
@@ -361,7 +390,6 @@ def op(archivo):
         if df2["Tipo de documento"][index] == "Matific":
             # print(df2["Nombre"][index] + " " + df2["Apellido"][index])
             df2["Nro de doc."][index] = formatNorm(df2["Nombre"][index].split()[0]) + formatNorm(df2["Apellido"][index].split()[0])
-
 
     ## Archivo TODOS
     data = {"Nacionalidad": df2["Nacionalidad"],
@@ -386,7 +414,7 @@ def op(archivo):
     df3 = df3.replace({'Grade': Grados})
 
 # Nombre del Archivo
-    fichero = str(Grado) +"_"+ str(Seccion)+"_" + str(Escuela)
+    fichero = str(Grado) +"_"+ str(Turno)+"_"+ str(Seccion)+"_" + str(Escuela)
     df3.to_excel(f"{fichero}.xlsx", index=False)
     df2.to_csv(f"{fichero}.csv", index=False)
 
