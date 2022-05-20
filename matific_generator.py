@@ -426,9 +426,9 @@ if __name__ =="__main__":
     script, archivo = argv
     try:
         op(archivo)
-        # print(f"\nLISTO -> {archivo}")
+        print(f"\nLISTO --> {archivo}")
     except Exception as ex:
-        print(f"\nFALLA -> {archivo}")
+        print(f"\nFALLA --> {archivo}")
         print(ex)
         with open('info.txt', 'a') as f:
             f.writelines(f"\n- FALLA -> {archivo}"+" "+ str(ex))
