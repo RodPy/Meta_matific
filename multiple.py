@@ -1,5 +1,4 @@
 import subprocess
-import matific_generator as mg
 from os import listdir
 import pandas as pd
 
@@ -24,10 +23,4 @@ for x in ls(path):
 
 for x in ls(path):
     subprocess.run(["python", "..\matific_generator.py", f"{path}\{x}"], shell=True)
-#   subprocess.run(["python", "matific_generator.py", f"{path}\{x}"], shell=True)
-#     subprocess.run(["python",".\matific_generator.py","TEST\op.xlsx"],shell=True)
-
-
-# for i in range(0,2):
-#     subprocess.call(['mkdir',f"{i}"],shell=True)
 
