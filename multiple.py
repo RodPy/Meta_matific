@@ -1,9 +1,13 @@
 import subprocess
-from os import listdir
+from os import *
 import pandas as pd
-
+import pathlib
 # path="TEST"
 path="."
+
+# filepath = sorted(pathlib.Path('.').glob('**/matific_generator.py'))
+# print(filepath)
+
 
 def ls(ruta = '.'):
     return listdir(ruta)
@@ -23,4 +27,8 @@ for x in ls(path):
 
 for x in ls(path):
     subprocess.run(["python", "..\matific_generator.py", f"{path}\{x}"], shell=True)
+    # subprocess.run(["python", "..\..\matific_generator.py", f"{path}\{x}"], shell=True)
+
+    # subprocess.run(["python", f"{filepath}", f"{path}\{x}"], shell=True)
+
 
