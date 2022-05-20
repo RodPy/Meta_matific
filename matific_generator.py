@@ -5,6 +5,7 @@ from fuzzywuzzy import process
 import re
 from unicodedata import normalize
 from sys import argv
+import os
 
 
 
@@ -335,8 +336,10 @@ def op(archivo):
         'Sexo',
         'Rol',
         'Tiene discapacidad']
+    os.makedirs(f'{Escuela}/excel' , exist_ok=True)
+    os.makedirs(f'{Escuela}/csv' , exist_ok=True)
 
-## Eliminar las filas que no tengan nombres y apellido
+    ## Eliminar las filas que no tengan nombres y apellido
     df1=df1.dropna(subset=['Nombre', 'Apellido'], axis=0)
     df1['F. Nacimiento'] = df1['F. Nacimiento'].fillna(genFecha(Grado))
     df1['Tiene discapacidad'] = df1['Tiene discapacidad'].fillna("NO")
@@ -415,8 +418,8 @@ def op(archivo):
 
 # Nombre del Archivo
     fichero = str(Grado) +"_"+ str(Turno)+"_"+ str(Seccion)+"_" + str(Escuela)
-    df3.to_excel(f"{fichero}.xlsx", index=False)
-    df2.to_csv(f"{fichero}.csv", index=False)
+    df3.to_excel(f"{Escuela}/excel/{fichero}.xlsx", index=False)
+    df2.to_csv(f"{Escuela}/csv/{fichero}.csv", index=False)
 
 
 if __name__ =="__main__":
