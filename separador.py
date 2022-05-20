@@ -5,7 +5,7 @@ import os
 
 
 script, workbook = argv
-
+## Path de carpeta
 os.makedirs('Escuela', exist_ok=True)
 df_sheets = pd.ExcelFile(workbook , engine="openpyxl")
 i=0
