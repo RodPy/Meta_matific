@@ -60,10 +60,11 @@ def genIA(doc='x', pais='x'):
         return x
 
 ## Diccionarios
-setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad",'Documento Extranjero']
-setPais=['Paraguay','Argentina','Documento Extranjero','Brasil']
+setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad",'Documento Extranjero',"DNI"]
+# setPais=['Paraguay','Argentina','Documento Extranjero','Brasil']
 gradoAnos={'1':'6','2':'7','3':'8','4':'9','5':'10','6':'11','8':'12'}
-Paises = {'PY': 'Paraguay', 'AR': 'Argentina', 'DE': 'Documento Extranjero'}
+# Paises = {'PY': 'Paraguay', 'AR': 'Argentina', 'DE': 'Documento Extranjero'}
+
 Nacionalidades = {'Paraguay': 'PY',
                   'Afghanistan': 'AF',
                   'Albania': 'AL',
@@ -316,6 +317,9 @@ Nacionalidades = {'Paraguay': 'PY',
                   'Zambia': 'ZM',
                   'Zimbabwe': 'ZW',
                   'Åland Islands': 'AX'}
+Paises={v: k for k, v in Nacionalidades.items()}
+setPais=[*Nacionalidades]
+
 tipoDoc = {'Certificado de Nac': 'Matific', 'Cedula de Identidad': 'CI','Oficina':"Matific",'DE':"Documento Extranjero"}
 Grados = {'1': "1ero", '2': "2do", '3': "3ro", '4': "4to", '5': "5to", '6': "6to", '7': "7mo"}
 Documentos = {'DE': 'Documento Extranjero', 'CI': 'Cédula de Identidad'}
