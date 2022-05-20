@@ -31,18 +31,30 @@ def genFecha(a):
     ano=date.year-int(x)
     return f"01/01/{ano}"
 
-def genIADoc(x):
-    aprox=process.extractOne(x,setDoc)
-    print (aprox)
-    if aprox[1]>50:
-        return aprox[0]
-    else:
-        return x
-
-def genIAPais(x):
-    aprox=process.extractOne(x,setPais)
-    print (aprox)
-    if aprox[1]>50:
+# def genIADoc(x):
+#     aprox=process.extractOne(x,setDoc)
+#     print (aprox)
+#     if aprox[1]>50:
+#         return aprox[0]
+#     else:
+#         return x
+#
+# def genIAPais(x):
+#     aprox=process.extractOne(x,setPais)
+#     print (aprox)
+#     if aprox[1]>50:
+#         return aprox[0]
+#     else:
+#         return x
+def genIA(doc='x', pais='x'):
+    if pais != 'x':
+        aprox = process.extractOne(pais, setPais)
+        x = pais
+    if doc != 'x':
+        aprox = process.extractOne(doc, setDoc)
+        x = doc
+    # print(aprox)
+    if aprox[1] > 60:
         return aprox[0]
     else:
         return x
@@ -52,7 +64,8 @@ setDoc=['Certificado de Nac',"Oficina","Cedula de Identidad",'Documento Extranje
 setPais=['Paraguay','Argentina','Documento Extranjero','Brasil']
 gradoAnos={'1':'6','2':'7','3':'8','4':'9','5':'10','6':'11','8':'12'}
 Paises = {'PY': 'Paraguay', 'AR': 'Argentina', 'DE': 'Documento Extranjero'}
-Nacionalidades = {'Paraguaya': 'PY', 'Afghanistan': 'AF',
+Nacionalidades = {'Paraguay': 'PY',
+                  'Afghanistan': 'AF',
                   'Albania': 'AL',
                   'Algeria': 'DZ',
                   'American Samoa': 'AS',
@@ -346,8 +359,8 @@ def op(archivo):
     df1['Rol'] = df1['Rol'].fillna("Alumno")
 
     ## Archivo CSV de Matific
-    data = {"Nacionalidad": df1["Nacionalidad"].astype(str).apply(formatNorm).apply(genIAPais),
-            'Tipo de documento': df1["Tipo de documento"].astype(str).apply(formatNorm).apply(formatString).apply(genIADoc),
+    data = {"Nacionalidad": df1["Nacionalidad"].astype(str).apply(formatNorm).apply(genIA),
+            'Tipo de documento': df1["Tipo de documento"].astype(str).apply(formatNorm).apply(formatString).apply(genIA),
             'Nro de doc.': df1["Nro de doc."].astype(str).apply(formatString),
             'Correo electrónico': df1["Correo electrónico"],
             "Nombre": df1["Nombre"].astype(str).apply(formatString),
